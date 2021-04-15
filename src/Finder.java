@@ -1,0 +1,15 @@
+import java.util.Scanner;
+import java.io.IOException;
+
+public class Finder {
+    public static void main(String[] args) throws IOException {
+        Scanner terminal = new Scanner(System.in);
+        System.out.print("Enter file to scan: ");
+        String file = terminal.nextLine();
+        terminal.close();
+
+        ViolationReport report = new ViolationReport(file);
+        report.executeScan();
+        System.out.println(report.toString());
+    }
+}
