@@ -3,6 +3,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+/**
+ * The Java version of MagicNumberScanner.
+ * 
+ * Algorithm summary:
+ * - scan each statement for double quotes, singles quotes or numbers
+ * - when found, search for constant identifiers "static" and "final"
+ *   - if constant identifiers not found, log line number and instance
+ *   - jump to end of instance and continue scanning
+ */
 public class JavaScanner implements MagicNumberScanner {
     private int lineNum;
 
@@ -19,15 +28,15 @@ public class JavaScanner implements MagicNumberScanner {
         // assumes the file isn't large
         // may rewrite this in case the above isn't true (someone tries to troll)
         String code = new String(Files.readAllBytes(Paths.get(filename)));
-        scanSection(code, 0, code.length() - 1, log);
+        scanSection(code, 0, code.length(), log);
     }
 
     /**
      * Scans a subsection of the code. Used when braces are encountered.
      * 
      * @param code the code in a string
-     * @param start the start position
-     * @param end the end position
+     * @param start the start position, inclusive
+     * @param end the end position, exclusive
      * @param log the log to report any violations
      * @return the number of violations found in the section.
      */
@@ -52,7 +61,7 @@ public class JavaScanner implements MagicNumberScanner {
                     currTracker = skipPairedBrace(code, currTracker);
                     // avoid unnecessary recursion
                     if (!isInSafeContext(code, beginStatement, afterBrace - 2)) {
-                        scanSection(code, afterBrace, currTracker - 2, log);
+                        scanSection(code, afterBrace, currTracker - 1, log);
                     }
                     beginStatement = currTracker;
 
@@ -88,9 +97,12 @@ public class JavaScanner implements MagicNumberScanner {
                                 && !isValidStrayNum(code, currTracker) 
                                 && !isInSafeContext(code, beginStatement, currTracker)) {
                             // get magic number and create report
-                            log.add(new ViolationReport.ViolationInfo(lineNum, code.substring(currTracker, skipIdentifier(code, currTracker))));
+                            log.add(new ViolationReport.ViolationInfo(lineNum, code.substring(currTracker, skipNumber(code, currTracker))));
+                            currTracker = skipNumber(code, currTracker);
                         }
-                        currTracker = skipIdentifier(code, currTracker);
+                        else {
+                            currTracker = skipIdentifier(code, currTracker);
+                        }
                     }
                     else {
                         ++currTracker;
@@ -231,10 +243,16 @@ public class JavaScanner implements MagicNumberScanner {
     }
 
     private int skipIdentifier(String code, int pos) {
-        ++pos;
-        while (isValidIdentifierChar(code.charAt(pos))) {
+        do {
             ++pos;
-        }
+        } while (isValidIdentifierChar(code.charAt(pos)));
+        return pos;
+    }
+
+    private int skipNumber(String code, int pos) {
+        do {
+            ++pos;
+        } while (isValidNumChar(code.charAt(pos)));
         return pos;
     }
 
@@ -266,8 +284,15 @@ public class JavaScanner implements MagicNumberScanner {
         return Character.isLetter(c) || c == '_' || c == '$';
     }
 
+    private boolean isValidNumChar(char c) {
+        return Character.isDigit(c) 
+                || c == '.'                 // decimal points
+                || c == 'x' || c == 'b'     // bin and hex
+                || c == 'f' || c == 'L';    // floats and longs
+    }
+
     /**
-     * Determines if a number found in the code is a 0 or 1.
+     * Determines if a number found in the code is an exception.
      * 
      * @param code the code in a string
      * @param pos the position of the first digit

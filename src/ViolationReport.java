@@ -1,15 +1,10 @@
-/**
- * @author Timothy Wu
- * @version 0.1
- */
-
 import java.util.ArrayList;
 import java.io.IOException;
 
 /**
- * This class organizes the data for "magic number" violations in Java code.
- * It also contains the method to scan the code for such violations. The method
- * assumes that the code compiles.
+ * This class organizes the data for "magic number" violations in.
+ * It also contains the method to scan the code for such violations. 
+ * The method assumes that the code compiles.
  */
 public class ViolationReport {
     private static final String CLEAN_MSG = "%s has no violations.";
