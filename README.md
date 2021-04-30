@@ -6,4 +6,5 @@ A program to help find instances of "magic numbers" in your code. "Magic numbers
 
 The languages that can be parsed with this program include:
 - Java
+- maaaaybe C?
 - uhhhh, that's it. More might come in the future.
