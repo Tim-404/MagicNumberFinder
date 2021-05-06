@@ -23,7 +23,7 @@ public class JavaScanner implements MagicNumberScanner {
      * @return the number of violations in the file.
      * @throws IOException if the file is not read properly.
      */
-    public void scan(String filename, ArrayList<ViolationReport.ViolationInfo> log) throws IOException {
+    public void scan(String filename, ArrayList<MagicNumReport.MagicNumInfo> log) throws IOException {
         lineNum = 1;
         // assumes the file isn't large
         // may rewrite this in case the above isn't true (someone tries to troll)
@@ -40,7 +40,7 @@ public class JavaScanner implements MagicNumberScanner {
      * @param log the log to report any violations
      * @return the number of violations found in the section.
      */
-    private void scanSection(String code, int start, int end, ArrayList<ViolationReport.ViolationInfo> log) {
+    private void scanSection(String code, int start, int end, ArrayList<MagicNumReport.MagicNumInfo> log) {
         int beginStatement = start;
         int currTracker = start;
 
@@ -77,7 +77,7 @@ public class JavaScanner implements MagicNumberScanner {
                     currTracker = findCloseQuote('"', code, currTracker, true);
                     // handle magic num case
                     if (!isInSafeContext(code, beginStatement, currTracker)) {
-                        log.add(new ViolationReport.ViolationInfo(lineNum, code.substring(firstQuote, currTracker)));
+                        log.add(new MagicNumReport.MagicNumInfo(lineNum, code.substring(firstQuote, currTracker)));
                     }
                     break;
 
@@ -86,7 +86,7 @@ public class JavaScanner implements MagicNumberScanner {
                     currTracker = findCloseQuote('\'', code, currTracker, true);
                     // handle magic num case
                     if (!isInSafeContext(code, beginStatement, currTracker)) {
-                        log.add(new ViolationReport.ViolationInfo(lineNum, code.substring(firstSingleQuote, currTracker)));
+                        log.add(new MagicNumReport.MagicNumInfo(lineNum, code.substring(firstSingleQuote, currTracker)));
                     }
                     break;
 
@@ -97,7 +97,7 @@ public class JavaScanner implements MagicNumberScanner {
                                 && !isValidStrayNum(code, currTracker) 
                                 && !isInSafeContext(code, beginStatement, currTracker)) {
                             // get magic number and create report
-                            log.add(new ViolationReport.ViolationInfo(lineNum, code.substring(currTracker, skipNumber(code, currTracker))));
+                            log.add(new MagicNumReport.MagicNumInfo(lineNum, code.substring(currTracker, skipNumber(code, currTracker))));
                             currTracker = skipNumber(code, currTracker);
                         }
                         else {
@@ -268,9 +268,8 @@ public class JavaScanner implements MagicNumberScanner {
     private boolean isPartOfIdentifier(String code, int pos) {
         char lastChar = code.charAt(pos);
         while (isValidIdentifierChar(code.charAt(--pos))) {
-            if (pos == 0) {
-                break;
-            }
+            lastChar = code.charAt(pos);
+            if (pos == 0) break;
         }
 
         return isValidIdentifierCharNotNum(lastChar);
@@ -302,7 +301,8 @@ public class JavaScanner implements MagicNumberScanner {
         char digit = code.charAt(pos);
         char nextChar = code.charAt(pos + 1);
         if (Character.isDigit(nextChar) 
-                || (digit == '0' && (nextChar == 'x' || nextChar == 'b'))   /* check for binary or hex */   ) {
+                || (digit == '0' && (nextChar == 'x' || nextChar == 'b'))   /* check for binary or hex */
+				|| nextChar == '.'	/* check for decimal point */	) {
             return false;
         }
         return digit == '1' || digit == '0';

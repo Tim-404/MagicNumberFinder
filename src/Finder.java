@@ -11,7 +11,7 @@ public class Finder {
         String file = terminal.nextLine();
         terminal.close();
 
-        ViolationReport report = new ViolationReport(file);
+        MagicNumReport report = new MagicNumReport(file);
         report.executeScan();
         System.out.println(report.toString());
     }

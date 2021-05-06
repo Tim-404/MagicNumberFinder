@@ -6,5 +6,5 @@ import java.util.ArrayList;
  * Different file scanners can be used for different languages.
  */
 public interface MagicNumberScanner {
-    void scan(String filename, ArrayList<ViolationReport.ViolationInfo> log) throws IOException;
+    void scan(String filename, ArrayList<MagicNumReport.MagicNumInfo> log) throws IOException;
 }
