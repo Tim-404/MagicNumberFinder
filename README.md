@@ -4,6 +4,7 @@ A program to help find instances of "magic numbers" in your code. "Magic numbers
 - character literals
 - numbers (excluding -1, 0, 1)
 
-## The languages that can be parsed with this program include:
+The languages that can be parsed with this program include:
 - Java
+- maaaaybe C?
 - uhhhh, that's it. More might come in the future.
